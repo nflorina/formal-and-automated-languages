@@ -1,0 +1,113 @@
+			  Tema LFA 2018-2019
+		   Interpretor pentru limbajul IMP
+----------------------------------------------------------------------
+		      Nastasoiu Florina 335CA
+
+
+	Am implementat un parser pentru IMP, limbaj imperativ prezentat
+în cadrul cursului, echipat cu facilități minimale precum if, while,
+atribuiri, expresii aritmetice și boolene. A fost realizat folosind
+generatorul de analizoare lexicale JFlex.
+
+----------------------------------------------------------------------
+	Pentru aceasta am creat clase pentru toate tipurile de noduri:
+% IntNode: nod terminal afisat: <IntNode> 
+% BoolNode: nod terminal afisat: <BoolNode> True”/“<BoolNode> False”
+% VarNode: nod terminal afisat: "<VarNode> <String>"
+% PlusNode: nod cu doi copii afisat:  "<PlusNode> +"
+% DivNode: nod cu doi copii afisat: "<DivNode> /"
+% BracketNode: nod cu un copil afisat: "<BracketNode> ()"
+% AndNode: nod cu doi copii afisat: "<AndNode> &&"
+% GreaterNode: nod cu doi copii afisat: "<GreaterNode> >"
+% NotNode: nod cu un copil afisat: "<NotNode> !"
+% AssignmentNode: nod cu doi copii afisat: "<AssignmentNode> ="
+% BlockNode: nod cu un/niciun copil afisat: "<BlockNode> {}"
+% IfNode: nod cu un trei copii afisat: "<IfNode> if"
+% WhileNode: nod cu 2 copii afisat: "<WhileNode> while"
+% SequenceNode: nod cu 2 copii afisat: "<SequenceNode>"
+-----------------------------------------------------------------------
+	Pentru crearea arborelui final am utilizat o stiva care mentine
+toate elementele parsate si/sau obiecte de tipul celor de mai sus.
+	Pentru calculul valorilor finale am utilizat o structura de tip
+map cu cheie si valoare.
+-----------------------------------------------------------------------
+	Logica principala este urmatoarea: se identifica operatiile cu
+prioritate cum ar fi "/", "=", apoi cele cum sunt ">", "&&",  "!".
+Pe masura ce putem identifica astfel de operatii, inlocuim elementele
+efective de pe stiva cu obiecte de tip DivNode, AssignmentNode, AndNode
+etc. Dupa ce "impachetam" aceste elemente in obiecte de tipul lor, la
+terminarea instructiunii, adica la ";", se poate restrange in nod de 
+tipul PlusNode (avand in vedere ca toate operatiile cu grad mai mare
+au fost rezolvare) si/sau BracketNode. Similar procedez pentru IfNode
+sau WhileNode.
+	Se doreste identificarea urmatoarealor forme structurale, 
+fiecare avand o anumita logica de functionare in raport cu stiva:
+
+% numbers = [1-9][0-9]* | 0
+  : verific daca este "=" pe stiva pentru crearea nodului AssignmentNode
+  : verific daca este "+", ">", "(" pe stiva si pun elementul pe stiva
+	pentru ca nu prezinta prioritate
+  : verific daca este "/" pe stiva si creez nod DivNode cu noul element
+	si obiectul/elementul prezent pe stiva inainte de "/"
+% letters = [a-zA-Z]
+  : verific daca este "=" pe stiva pentru crearea nodului AssignmentNode
+  : verific daca este "/" pe stiva si creez nod DivNode cu noul element
+	si obiectul/elementul prezent pe stiva inainte de "/"
+  : in alte cazuri ("+",  ">", "&&", "!" etc) pun elementul pe stiva pt
+	ca nu prezinta prioritate
+% int = "int"
+  : se initializeaza un flag de declarare al variabilei, urmand sa se 
+	astepte reaparitia sa
+% equal = "="
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% semicolon = ";"
+  : in acest punct se cumuleaza toate obiectele/elementele de pe stiva 
+	pana la egal; conform regulii prioritatii operatiilor, putem fi
+	siguri ca toate nodurile de tip DivNode, AndNode, BracketNote,
+	NotNode etc au fost rezolvate si ,in cazul unei stive nevide,
+	singurele elemente ramase pot forma noduri PlusNode
+% colon = ","
+% plus = [+]
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% divide = [/]
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% open = [(]
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% closed = [)]
+  : se analizeaza similar cu ";" pentru ca dorim alcatuirea de noduri din
+	elementele prezente in stiva pana la intalnirea elementului "("
+% booltrue = "true"
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% boolfalse = "false"
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% ifcond = "if"
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% elsecond = "else"
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% openb = [{]
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% closeb = [}]
+  : similar cu analiza ")"
+  : in plus, de fiecare data se verifica daca ce incheie un ciclu if sau
+	while pentru a crea un nod de tipul respectiv
+% greater = [>]
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% notnode = [!]
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
+% andnode = "&&"
+  : pun elementul pe stiva si verific inaintea sa daca exista elemente cu
+	care poate forma un AndNode
+% whilen = "while"
+  : pun elementul pe stiva pentru ca nu reprezinta prioritate in punctul
+	descoperirii sale
